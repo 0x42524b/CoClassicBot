@@ -1,5 +1,8 @@
 #include "plugin_mgr.h"
 #include "travel_plugin.h"
+#include "base_hunt_plugin.h"
+#include "melee_hunt_plugin.h"
+#include "archer_hunt_plugin.h"
 #include "mining_plugin.h"
 #include "mule_plugin.h"
 #include "aim_helper_plugin.h"
@@ -18,6 +21,8 @@ PluginManager& PluginManager::Get()
 
 void PluginManager::Init()
 {
+    m_plugins.push_back(std::make_unique<MeleeHuntPlugin>());
+    m_plugins.push_back(std::make_unique<ArcherHuntPlugin>());
     m_plugins.push_back(std::make_unique<MiningPlugin>());
     m_plugins.push_back(std::make_unique<MulePlugin>());
     m_plugins.push_back(std::make_unique<TravelPlugin>());
@@ -46,10 +51,25 @@ void PluginManager::RenderAllUI()
     if (ImGui::BeginTabItem("Plugins")) {
         constexpr float kSidebarWidth = 120.0f;
 
+        // Build sidebar entries — hunt plugins are merged into one "Hunting" entry
+        // kHuntingIndex is a sentinel meaning "show the Hunting composite view"
+        constexpr int kHuntingIndex = -2;
+
         // ── Left sidebar ──
         ImGui::BeginChild("##plugin_sidebar", ImVec2(kSidebarWidth, 0), true);
+        bool huntEntryRendered = false;
         for (size_t i = 0; i < m_plugins.size(); i++) {
-            if (ImGui::Selectable(m_plugins[i]->GetName(), m_selectedPlugin == (int)i))
+            auto& p = m_plugins[i];
+            if (dynamic_cast<BaseHuntPlugin*>(p.get())) {
+                if (huntEntryRendered)
+                    continue;
+                huntEntryRendered = true;
+                if (ImGui::Selectable("Hunting", m_selectedPlugin == kHuntingIndex))
+                    m_selectedPlugin = kHuntingIndex;
+                continue;
+            }
+
+            if (ImGui::Selectable(p->GetName(), m_selectedPlugin == (int)i))
                 m_selectedPlugin = (int)i;
         }
         ImGui::EndChild();
@@ -58,7 +78,37 @@ void PluginManager::RenderAllUI()
 
         // ── Right content ──
         ImGui::BeginChild("##plugin_content", ImVec2(0, 0), true);
-        if (m_selectedPlugin >= 0 && m_selectedPlugin < (int)m_plugins.size()) {
+        if (m_selectedPlugin == kHuntingIndex) {
+            // Hunting composite: shared settings, then sub-tabs for each mode
+            // Use the enabled hunt plugin for general/settings UI (runtime stats, safety, etc.)
+            BaseHuntPlugin* activeHunt = nullptr;
+            BaseHuntPlugin* firstHunt = nullptr;
+            for (auto& p : m_plugins) {
+                if (auto* hunt = dynamic_cast<BaseHuntPlugin*>(p.get())) {
+                    if (!firstHunt) firstHunt = hunt;
+                    if (hunt->m_enabled) activeHunt = hunt;
+                }
+            }
+            BaseHuntPlugin* uiHunt = activeHunt ? activeHunt : firstHunt;
+            if (uiHunt)
+                uiHunt->RenderGeneralUI();
+
+            ImGui::Separator();
+            if (ImGui::BeginTabBar("##huntmodetabs")) {
+                for (auto& p : m_plugins) {
+                    if (auto* hunt = dynamic_cast<BaseHuntPlugin*>(p.get())) {
+                        if (ImGui::BeginTabItem(hunt->GetName())) {
+                            hunt->RenderUI();
+                            ImGui::EndTabItem();
+                        }
+                    }
+                }
+                ImGui::EndTabBar();
+            }
+
+            if (uiHunt)
+                uiHunt->RenderSettingsUI();
+        } else if (m_selectedPlugin >= 0 && m_selectedPlugin < (int)m_plugins.size()) {
             m_plugins[m_selectedPlugin]->RenderUI();
         }
         ImGui::EndChild();

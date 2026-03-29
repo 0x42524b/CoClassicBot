@@ -30,5 +30,5 @@ public:
 
 private:
     std::vector<std::unique_ptr<IPlugin>> m_plugins;
-    int m_selectedPlugin = 0;
+    int m_selectedPlugin = -2;  // -2 = Hunting composite view
 };

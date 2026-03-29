@@ -1,5 +1,6 @@
 #include "follow_plugin.h"
 #include "game.h"
+#include "hunt_settings.h"
 #include "log.h"
 #include "imgui.h"
 
@@ -160,8 +161,9 @@ void FollowPlugin::Update()
     if (hero->IsJumping()) return;
 
     // Throttle movement commands
+    const AutoHuntSettings& ah = GetAutoHuntSettings();
     const DWORD now = GetTickCount();
-    const DWORD interval = 500;
+    const DWORD interval = ah.movementIntervalMs > 0 ? ah.movementIntervalMs : 500;
     if (m_lastJumpTick != 0 && now - m_lastJumpTick < interval)
         return;
 

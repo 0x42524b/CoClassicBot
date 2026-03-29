@@ -81,11 +81,19 @@
     <ClCompile Include="src\itemtype.cpp" />
     <ClCompile Include="src\CEntitySet.cpp" />
     <ClCompile Include="src\packets.cpp" />
+    <ClCompile Include="src\hunt_settings.cpp" />
+    <ClCompile Include="src\hunt_targeting.cpp" />
+    <ClCompile Include="src\hunt_town.cpp" />
+    <ClCompile Include="src\hunt_buffs.cpp" />
+    <ClCompile Include="src\hunt_loot.cpp" />
     <ClCompile Include="src\inventory_utils.cpp" />
     <ClCompile Include="src\npc_utils.cpp" />
     <ClCompile Include="src\revive_utils.cpp" />
     <ClCompile Include="src\pathfinder.cpp" />
     <ClCompile Include="src\plugins\plugin_mgr.cpp" />
+    <ClCompile Include="src\plugins\base_hunt_plugin.cpp" />
+    <ClCompile Include="src\plugins\melee_hunt_plugin.cpp" />
+    <ClCompile Include="src\plugins\archer_hunt_plugin.cpp" />
 
     <ClCompile Include="src\plugins\mining_plugin.cpp" />
     <ClCompile Include="src\plugins\mule_plugin.cpp" />
@@ -135,6 +143,11 @@
     <ClInclude Include="src\gateway.h" />
     <ClInclude Include="src\gfx.h" />
     <ClInclude Include="src\hooks.h" />
+    <ClInclude Include="src\hunt_settings.h" />
+    <ClInclude Include="src\hunt_targeting.h" />
+    <ClInclude Include="src\hunt_town.h" />
+    <ClInclude Include="src\hunt_buffs.h" />
+    <ClInclude Include="src\hunt_loot.h" />
     <ClInclude Include="src\inventory_utils.h" />
     <ClInclude Include="src\npc_utils.h" />
     <ClInclude Include="src\revive_utils.h" />
@@ -143,6 +156,9 @@
     <ClInclude Include="src\packets.h" />
     <ClInclude Include="src\plugins\plugin.h" />
     <ClInclude Include="src\plugins\plugin_mgr.h" />
+    <ClInclude Include="src\plugins\base_hunt_plugin.h" />
+    <ClInclude Include="src\plugins\melee_hunt_plugin.h" />
+    <ClInclude Include="src\plugins\archer_hunt_plugin.h" />
 
     <ClInclude Include="src\plugins\mining_plugin.h" />
     <ClInclude Include="src\plugins\mule_plugin.h" />
@@ -152,10 +168,6 @@
     <ClInclude Include="src\plugins\revive_helper_plugin.h" />
     <ClInclude Include="src\plugins\artisan_spammer_plugin.h" />
     <ClInclude Include="src\plugins\skill_trainer_plugin.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="ImConquer_CIxoWIfUTQ.png" />
-    <Content Include="ImConquer_xBNuEcy9cU.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

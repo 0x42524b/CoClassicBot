@@ -5,6 +5,7 @@
 #include "packets.h"
 #include "CEntitySet.h"
 #include "config.h"
+#include "hunt_settings.h"
 #include "log.h"
 #include "imgui.h"
 #include <algorithm>
@@ -139,7 +140,7 @@ void TravelPlugin::StartPathAndTrack(const std::vector<Position>& waypoints)
 {
     Pathfinder::Get().StartPath(
         waypoints,
-        900);
+        static_cast<DWORD>(GetAutoHuntSettings().movementIntervalMs));
     m_pathGeneration = Pathfinder::Get().GetGeneration();
 }
 

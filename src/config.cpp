@@ -4,6 +4,7 @@
 #include "game.h"
 #include "pathfinder.h"
 #include "plugins/aim_helper_plugin.h"
+#include "hunt_settings.h"
 #include "plugins/mining_plugin.h"
 #include "plugins/mule_plugin.h"
 #include "plugins/follow_plugin.h"
@@ -272,6 +273,94 @@ static std::string BuildCurrentConfigSnapshot()
     AppendBoolSnapshot(snapshot, "showDeadOnly", guild.showDeadOnly);
     AppendStringSnapshot(snapshot, "guildWhitelist", guild.guildWhitelist);
 
+    const AutoHuntSettings& autoHunt = GetAutoHuntSettings();
+    snapshot += "[AutoHunt]\n";
+    AppendBoolSnapshot(snapshot, "enabled", autoHunt.enabled);
+    AppendBoolSnapshot(snapshot, "usePotions", autoHunt.usePotions);
+    AppendBoolSnapshot(snapshot, "autoRepair", autoHunt.autoRepair);
+    AppendBoolSnapshot(snapshot, "autoStore", autoHunt.autoStore);
+    AppendBoolSnapshot(snapshot, "autoReviveInTown", autoHunt.autoReviveInTown);
+    // Snapshot skill priority order
+    for (int i = 0; i < kHuntSkillCount; i++) {
+        char key[32];
+        snprintf(key, sizeof(key), "skill%d", i);
+        AppendIntSnapshot(snapshot, key, static_cast<int>(autoHunt.skillPriorities[i].type));
+        snprintf(key, sizeof(key), "skill%d_en", i);
+        AppendBoolSnapshot(snapshot, key, autoHunt.skillPriorities[i].enabled);
+    }
+    AppendBoolSnapshot(snapshot, "supermanBeforeCyclone", autoHunt.supermanBeforeCyclone);
+    AppendBoolSnapshot(snapshot, "useAccuracyIfCycloneActive", autoHunt.useAccuracyIfCycloneActive);
+    AppendBoolSnapshot(snapshot, "archerMode", autoHunt.archerMode);
+    AppendBoolSnapshot(snapshot, "flyOnlyWithCyclone", autoHunt.flyOnlyWithCyclone);
+    AppendBoolSnapshot(snapshot, "useScatterLogic", autoHunt.useScatterLogic);
+    AppendBoolSnapshot(snapshot, "pickupNearbyHpPotionWhenLow", autoHunt.pickupNearbyHpPotionWhenLow);
+    AppendBoolSnapshot(snapshot, "pickupNearbyManaPotionForStigma", autoHunt.pickupNearbyManaPotionForStigma);
+    AppendBoolSnapshot(snapshot, "prioritizeMobClumps", autoHunt.prioritizeMobClumps);
+    AppendBoolSnapshot(snapshot, "prioritizeScatterClumps", autoHunt.prioritizeScatterClumps);
+    AppendIntSnapshot(snapshot, "mobSearchRange", autoHunt.mobSearchRange);
+    AppendBoolSnapshot(snapshot, "immediateReturnOnPriorityItems", autoHunt.immediateReturnOnPriorityItems);
+    AppendBoolSnapshot(snapshot, "storeTreasureBank", autoHunt.storeTreasureBank);
+    AppendBoolSnapshot(snapshot, "storeComposeBank", autoHunt.storeComposeBank);
+    AppendBoolSnapshot(snapshot, "autoDepositSilver", autoHunt.autoDepositSilver);
+    AppendIntSnapshot(snapshot, "silverKeepAmount", autoHunt.silverKeepAmount);
+    AppendBoolSnapshot(snapshot, "packMeteorsIntoScrolls", autoHunt.packMeteorsIntoScrolls);
+    AppendBoolSnapshot(snapshot, "lootRefined", autoHunt.lootRefined);
+    AppendBoolSnapshot(snapshot, "lootUnique", autoHunt.lootUnique);
+    AppendBoolSnapshot(snapshot, "lootElite", autoHunt.lootElite);
+    AppendBoolSnapshot(snapshot, "lootSuper", autoHunt.lootSuper);
+    AppendBoolSnapshot(snapshot, "storeRefined", autoHunt.storeRefined);
+    AppendBoolSnapshot(snapshot, "storeUnique", autoHunt.storeUnique);
+    AppendBoolSnapshot(snapshot, "storeElite", autoHunt.storeElite);
+    AppendBoolSnapshot(snapshot, "storeSuper", autoHunt.storeSuper);
+    AppendBoolSnapshot(snapshot, "buyArrows", autoHunt.buyArrows);
+    AppendIntSnapshot(snapshot, "arrowTypeId", (int)autoHunt.arrowTypeId);
+    AppendIntSnapshot(snapshot, "arrowBuyCount", autoHunt.arrowBuyCount);
+    AppendIntSnapshot(snapshot, "hpPotionPercent", autoHunt.hpPotionPercent);
+    AppendIntSnapshot(snapshot, "manaPotionPercent", autoHunt.manaPotionPercent);
+    AppendIntSnapshot(snapshot, "repairPercent", autoHunt.repairPercent);
+    AppendIntSnapshot(snapshot, "bagStoreThreshold", autoHunt.bagStoreThreshold);
+    AppendIntSnapshot(snapshot, "clumpRadius", autoHunt.clumpRadius);
+    AppendIntSnapshot(snapshot, "minimumMobClump", autoHunt.minimumMobClump);
+    AppendIntSnapshot(snapshot, "minimumScatterHits", autoHunt.minimumScatterHits);
+    AppendIntSnapshot(snapshot, "scatterRangeOverride", autoHunt.scatterRangeOverride);
+    AppendIntSnapshot(snapshot, "actionRadius", autoHunt.actionRadius);
+    AppendIntSnapshot(snapshot, "rangedAttackRange", autoHunt.rangedAttackRange);
+    AppendIntSnapshot(snapshot, "archerSafetyDistance", autoHunt.archerSafetyDistance);
+    AppendIntSnapshot(snapshot, "lootRange", autoHunt.lootRange);
+    AppendIntSnapshot(snapshot, "movementIntervalMs", autoHunt.movementIntervalMs);
+    AppendIntSnapshot(snapshot, "attackIntervalMs", autoHunt.attackIntervalMs);
+    AppendIntSnapshot(snapshot, "cycloneAttackIntervalMs", autoHunt.cycloneAttackIntervalMs);
+    AppendIntSnapshot(snapshot, "targetSwitchAttackIntervalMs", autoHunt.targetSwitchAttackIntervalMs);
+    AppendIntSnapshot(snapshot, "itemActionIntervalMs", autoHunt.itemActionIntervalMs);
+    AppendIntSnapshot(snapshot, "lootSpawnGraceMs", autoHunt.lootSpawnGraceMs);
+    AppendIntSnapshot(snapshot, "selfCastIntervalMs", autoHunt.selfCastIntervalMs);
+    AppendIntSnapshot(snapshot, "npcActionIntervalMs", autoHunt.npcActionIntervalMs);
+    AppendIntSnapshot(snapshot, "lootPickupIgnoreMs", autoHunt.lootPickupIgnoreMs);
+    AppendIntSnapshot(snapshot, "reviveDelayMs", autoHunt.reviveDelayMs);
+    AppendIntSnapshot(snapshot, "reviveRetryIntervalMs", autoHunt.reviveRetryIntervalMs);
+    AppendIntSnapshot(snapshot, "minimumLootPlus", autoHunt.minimumLootPlus);
+    AppendIntSnapshot(snapshot, "minimumStorePlus", autoHunt.minimumStorePlus);
+    AppendIntSnapshot(snapshot, "zoneMapId", autoHunt.zoneMapId);
+    AppendIntSnapshot(snapshot, "combatMode", static_cast<int>(autoHunt.combatMode));
+    AppendIntSnapshot(snapshot, "zoneMode", static_cast<int>(autoHunt.zoneMode));
+    AppendIntSnapshot(snapshot, "zoneCenterX", autoHunt.zoneCenter.x);
+    AppendIntSnapshot(snapshot, "zoneCenterY", autoHunt.zoneCenter.y);
+    AppendIntSnapshot(snapshot, "zoneRadius", autoHunt.zoneRadius);
+    AppendStringSnapshot(snapshot, "monsterNames", autoHunt.monsterNames);
+    AppendStringSnapshot(snapshot, "monsterIgnoreNames", autoHunt.monsterIgnoreNames);
+    AppendStringSnapshot(snapshot, "monsterPreferNames", autoHunt.monsterPreferNames);
+    AppendStringSnapshot(snapshot, "playerWhitelist", autoHunt.playerWhitelist);
+    AppendBoolSnapshot(snapshot, "usePacketJump", autoHunt.usePacketJump);
+    AppendBoolSnapshot(snapshot, "safetyEnabled", autoHunt.safetyEnabled);
+    AppendBoolSnapshot(snapshot, "safetyNotifyDiscord", autoHunt.safetyNotifyDiscord);
+    AppendIntSnapshot(snapshot, "safetyPlayerRange", autoHunt.safetyPlayerRange);
+    AppendIntSnapshot(snapshot, "safetyDetectionSec", autoHunt.safetyDetectionSec);
+    AppendIntSnapshot(snapshot, "safetyRestSec", autoHunt.safetyRestSec);
+    AppendStringSnapshot(snapshot, "zonePolygon", SerializePositions(autoHunt.zonePolygon).c_str());
+    AppendStringSnapshot(snapshot, "lootItemIds", SerializeU32List(autoHunt.lootItemIds).c_str());
+    AppendStringSnapshot(snapshot, "warehouseItemIds", SerializeU32List(autoHunt.warehouseItemIds).c_str());
+    AppendStringSnapshot(snapshot, "priorityReturnItemIds", SerializeU32List(autoHunt.priorityReturnItemIds).c_str());
+
     const MiningSettings& mining = GetMiningSettings();
     snapshot += "[Mining]\n";
     AppendBoolSnapshot(snapshot, "enabled", mining.enabled);
@@ -339,6 +428,358 @@ static void ResetConfigAutosaveState()
     g_lastSavedConfigSnapshot = snapshot;
     g_lastConfigChangeTick = 0;
     g_configAutosavePending = false;
+}
+
+static void SaveAutoHuntSection(const char* file, const char* section)
+{
+    AutoHuntSettings& autoHunt = GetAutoHuntSettings();
+    WriteInt(file, section, "enabled", autoHunt.enabled ? 1 : 0);
+    WriteInt(file, section, "usePotions", autoHunt.usePotions ? 1 : 0);
+    WriteInt(file, section, "autoRepair", autoHunt.autoRepair ? 1 : 0);
+    WriteInt(file, section, "autoStore", autoHunt.autoStore ? 1 : 0);
+    WriteInt(file, section, "autoReviveInTown", autoHunt.autoReviveInTown ? 1 : 0);
+    // Skill priority order: "Superman:1,Cyclone:1,XpFly:0,Fly:0,Stigma:0"
+    {
+        std::string skillOrder;
+        for (int i = 0; i < kHuntSkillCount; i++) {
+            if (!skillOrder.empty()) skillOrder += ',';
+            const auto& entry = autoHunt.skillPriorities[i];
+            const char* name = nullptr;
+            switch (entry.type) {
+                case HuntSkillType::Superman: name = "Superman"; break;
+                case HuntSkillType::Cyclone:  name = "Cyclone";  break;
+                case HuntSkillType::Accuracy: name = "Accuracy"; break;
+                case HuntSkillType::XpFly:    name = "XpFly";    break;
+                case HuntSkillType::Fly:      name = "Fly";      break;
+                case HuntSkillType::Stigma:   name = "Stigma";   break;
+                default: name = "Unknown"; break;
+            }
+            skillOrder += name;
+            skillOrder += ':';
+            skillOrder += (entry.enabled ? '1' : '0');
+        }
+        WritePrivateProfileStringA(section, "skillOrder", skillOrder.c_str(), file);
+    }
+    // Legacy bools for backwards compatibility
+    WriteInt(file, section, "castSuperman", autoHunt.castSuperman ? 1 : 0);
+    WriteInt(file, section, "castCyclone", autoHunt.castCyclone ? 1 : 0);
+    WriteInt(file, section, "supermanBeforeCyclone", autoHunt.supermanBeforeCyclone ? 1 : 0);
+    WriteInt(file, section, "useAccuracyIfCycloneActive", autoHunt.useAccuracyIfCycloneActive ? 1 : 0);
+    WriteInt(file, section, "useStigma", autoHunt.useStigma ? 1 : 0);
+    WriteInt(file, section, "archerMode", autoHunt.archerMode ? 1 : 0);
+    WriteInt(file, section, "castXpFly", autoHunt.castXpFly ? 1 : 0);
+    WriteInt(file, section, "castFlyStamina", autoHunt.castFly ? 1 : 0);
+    WriteInt(file, section, "flyOnlyWithCyclone", autoHunt.flyOnlyWithCyclone ? 1 : 0);
+    WriteInt(file, section, "useScatterLogic", autoHunt.useScatterLogic ? 1 : 0);
+    WriteInt(file, section, "pickupNearbyHpPotionWhenLow", autoHunt.pickupNearbyHpPotionWhenLow ? 1 : 0);
+    WriteInt(file, section, "pickupNearbyManaPotionForStigma", autoHunt.pickupNearbyManaPotionForStigma ? 1 : 0);
+    WriteInt(file, section, "prioritizeMobClumps", autoHunt.prioritizeMobClumps ? 1 : 0);
+    WriteInt(file, section, "prioritizeScatterClumps", autoHunt.prioritizeScatterClumps ? 1 : 0);
+    WriteInt(file, section, "mobSearchRange", autoHunt.mobSearchRange);
+    WriteInt(file, section, "immediateReturnOnPriorityItems", autoHunt.immediateReturnOnPriorityItems ? 1 : 0);
+    WriteInt(file, section, "storeTreasureBank", autoHunt.storeTreasureBank ? 1 : 0);
+    WriteInt(file, section, "storeComposeBank", autoHunt.storeComposeBank ? 1 : 0);
+    WriteInt(file, section, "autoDepositSilver", autoHunt.autoDepositSilver ? 1 : 0);
+    WriteInt(file, section, "silverKeepAmount", autoHunt.silverKeepAmount);
+    WriteInt(file, section, "packMeteorsIntoScrolls", autoHunt.packMeteorsIntoScrolls ? 1 : 0);
+    WriteInt(file, section, "lootRefined", autoHunt.lootRefined ? 1 : 0);
+    WriteInt(file, section, "lootUnique", autoHunt.lootUnique ? 1 : 0);
+    WriteInt(file, section, "lootElite", autoHunt.lootElite ? 1 : 0);
+    WriteInt(file, section, "lootSuper", autoHunt.lootSuper ? 1 : 0);
+    WriteInt(file, section, "storeRefined", autoHunt.storeRefined ? 1 : 0);
+    WriteInt(file, section, "storeUnique", autoHunt.storeUnique ? 1 : 0);
+    WriteInt(file, section, "storeElite", autoHunt.storeElite ? 1 : 0);
+    WriteInt(file, section, "storeSuper", autoHunt.storeSuper ? 1 : 0);
+    WriteInt(file, section, "buyArrows", autoHunt.buyArrows ? 1 : 0);
+    WriteInt(file, section, "arrowTypeId", (int)autoHunt.arrowTypeId);
+    WriteInt(file, section, "arrowBuyCount", autoHunt.arrowBuyCount);
+    WriteInt(file, section, "hpPotionPercent", autoHunt.hpPotionPercent);
+    WriteInt(file, section, "manaPotionPercent", autoHunt.manaPotionPercent);
+    WriteInt(file, section, "repairPercent", autoHunt.repairPercent);
+    WriteInt(file, section, "bagStoreThreshold", autoHunt.bagStoreThreshold);
+    WriteInt(file, section, "clumpRadius", autoHunt.clumpRadius);
+    WriteInt(file, section, "minimumMobClump", autoHunt.minimumMobClump);
+    WriteInt(file, section, "minimumScatterHits", autoHunt.minimumScatterHits);
+    WriteInt(file, section, "scatterRangeOverride", autoHunt.scatterRangeOverride);
+    WriteInt(file, section, "actionRadius", autoHunt.actionRadius);
+    WriteInt(file, section, "rangedAttackRange", autoHunt.rangedAttackRange);
+    WriteInt(file, section, "archerSafetyDistance", autoHunt.archerSafetyDistance);
+    WriteInt(file, section, "lootRange", autoHunt.lootRange);
+    WriteInt(file, section, "movementIntervalMs", autoHunt.movementIntervalMs);
+    WriteInt(file, section, "attackIntervalMs", autoHunt.attackIntervalMs);
+    WriteInt(file, section, "cycloneAttackIntervalMs", autoHunt.cycloneAttackIntervalMs);
+    WriteInt(file, section, "targetSwitchAttackIntervalMs", autoHunt.targetSwitchAttackIntervalMs);
+    WriteInt(file, section, "itemActionIntervalMs", autoHunt.itemActionIntervalMs);
+    WriteInt(file, section, "lootSpawnGraceMs", autoHunt.lootSpawnGraceMs);
+    WriteInt(file, section, "selfCastIntervalMs", autoHunt.selfCastIntervalMs);
+    WriteInt(file, section, "npcActionIntervalMs", autoHunt.npcActionIntervalMs);
+    WriteInt(file, section, "lootPickupIgnoreMs", autoHunt.lootPickupIgnoreMs);
+    WriteInt(file, section, "reviveDelayMs", autoHunt.reviveDelayMs);
+    WriteInt(file, section, "reviveRetryIntervalMs", autoHunt.reviveRetryIntervalMs);
+    WriteInt(file, section, "minimumLootPlus", autoHunt.minimumLootPlus);
+    WriteInt(file, section, "minimumStorePlus", autoHunt.minimumStorePlus);
+    WriteInt(file, section, "zoneMapId", autoHunt.zoneMapId);
+    WriteInt(file, section, "combatMode", static_cast<int>(autoHunt.combatMode));
+    WriteInt(file, section, "zoneMode", static_cast<int>(autoHunt.zoneMode));
+    WriteInt(file, section, "zoneCenterX", autoHunt.zoneCenter.x);
+    WriteInt(file, section, "zoneCenterY", autoHunt.zoneCenter.y);
+    WriteInt(file, section, "zoneRadius", autoHunt.zoneRadius);
+    WritePrivateProfileStringA(section, "monsterNames", autoHunt.monsterNames, file);
+    WritePrivateProfileStringA(section, "monsterIgnoreNames", autoHunt.monsterIgnoreNames, file);
+    WritePrivateProfileStringA(section, "monsterPreferNames", autoHunt.monsterPreferNames, file);
+    WritePrivateProfileStringA(section, "playerWhitelist", autoHunt.playerWhitelist, file);
+    WriteInt(file, section, "usePacketJump", autoHunt.usePacketJump ? 1 : 0);
+    WriteInt(file, section, "safetyEnabled", autoHunt.safetyEnabled ? 1 : 0);
+    WriteInt(file, section, "safetyNotifyDiscord", autoHunt.safetyNotifyDiscord ? 1 : 0);
+    WriteInt(file, section, "safetyPlayerRange", autoHunt.safetyPlayerRange);
+    WriteInt(file, section, "safetyDetectionSec", autoHunt.safetyDetectionSec);
+    WriteInt(file, section, "safetyRestSec", autoHunt.safetyRestSec);
+    const std::string polygon = SerializePositions(autoHunt.zonePolygon);
+    WritePrivateProfileStringA(section, "zonePolygon", polygon.c_str(), file);
+    const std::string lootIds = SerializeU32List(autoHunt.lootItemIds);
+    WritePrivateProfileStringA(section, "lootItemIds", lootIds.c_str(), file);
+    const std::string warehouseIds = SerializeU32List(autoHunt.warehouseItemIds);
+    WritePrivateProfileStringA(section, "warehouseItemIds", warehouseIds.c_str(), file);
+    const std::string priorityReturnIds = SerializeU32List(autoHunt.priorityReturnItemIds);
+    WritePrivateProfileStringA(section, "priorityReturnItemIds", priorityReturnIds.c_str(), file);
+}
+
+static void LoadAutoHuntSection(const char* file, const char* section)
+{
+    AutoHuntSettings& autoHunt = GetAutoHuntSettings();
+    autoHunt = AutoHuntSettings{};
+    autoHunt.enabled = ReadInt(file, section, "enabled", 0) != 0;
+    autoHunt.usePotions = ReadInt(file, section, "usePotions", 1) != 0;
+    autoHunt.autoRepair = ReadInt(file, section, "autoRepair", 1) != 0;
+    autoHunt.autoStore = ReadInt(file, section, "autoStore", 1) != 0;
+    autoHunt.autoReviveInTown = ReadInt(file, section, "autoReviveInTown", 1) != 0;
+    // Load legacy individual skill bools first (used for migration)
+    autoHunt.castSuperman = ReadInt(file, section, "castSuperman", 0) != 0;
+    autoHunt.castCyclone = ReadInt(file, section, "castCyclone", 1) != 0;
+    autoHunt.supermanBeforeCyclone = ReadInt(file, section, "supermanBeforeCyclone", 0) != 0;
+    autoHunt.useAccuracyIfCycloneActive = ReadInt(file, section, "useAccuracyIfCycloneActive", 0) != 0;
+    autoHunt.useStigma = ReadInt(file, section, "useStigma", 0) != 0;
+    autoHunt.archerMode = ReadInt(file, section, "archerMode", 0) != 0;
+    autoHunt.castXpFly = ReadInt(file, section, "castXpFly", -1) != 0;
+    if (ReadInt(file, section, "castXpFly", -1) == -1)  // key absent — migrate old "castFly"
+        autoHunt.castXpFly = ReadInt(file, section, "castFly", 0) != 0;
+    autoHunt.castFly = ReadInt(file, section, "castFlyStamina", 0) != 0;
+    autoHunt.flyOnlyWithCyclone = ReadInt(file, section, "flyOnlyWithCyclone", 0) != 0;
+
+    // Load skill priority order — if present, overrides legacy bools
+    {
+        char skillOrderBuf[512] = {};
+        ReadString(file, section, "skillOrder", "", skillOrderBuf, sizeof(skillOrderBuf));
+        if (skillOrderBuf[0] != '\0') {
+            // Parse "Superman:1,Cyclone:1,XpFly:0,Fly:0,Stigma:0"
+            HuntSkillEntry parsed[kHuntSkillCount] = {};
+            int count = 0;
+            char* ctx = nullptr;
+            char* token = strtok_s(skillOrderBuf, ",", &ctx);
+            while (token && count < kHuntSkillCount) {
+                char* colon = strchr(token, ':');
+                if (colon) {
+                    *colon = '\0';
+                    const char* name = token;
+                    bool enabled = (atoi(colon + 1) != 0);
+                    HuntSkillType type = HuntSkillType::Count;
+                    if (strcmp(name, "Superman") == 0) type = HuntSkillType::Superman;
+                    else if (strcmp(name, "Cyclone") == 0) type = HuntSkillType::Cyclone;
+                    else if (strcmp(name, "Accuracy") == 0) type = HuntSkillType::Accuracy;
+                    else if (strcmp(name, "XpFly") == 0) type = HuntSkillType::XpFly;
+                    else if (strcmp(name, "Fly") == 0) type = HuntSkillType::Fly;
+                    else if (strcmp(name, "Stigma") == 0) type = HuntSkillType::Stigma;
+                    if (type != HuntSkillType::Count) {
+                        parsed[count].type = type;
+                        parsed[count].enabled = enabled;
+                        count++;
+                    }
+                }
+                token = strtok_s(nullptr, ",", &ctx);
+            }
+            if (count == kHuntSkillCount) {
+                for (int i = 0; i < kHuntSkillCount; i++)
+                    autoHunt.skillPriorities[i] = parsed[i];
+            }
+            // else: malformed, keep defaults
+        } else {
+            // No skillOrder key — migrate from legacy individual bools
+            autoHunt.skillPriorities[0] = { HuntSkillType::Superman, autoHunt.castSuperman };
+            autoHunt.skillPriorities[1] = { HuntSkillType::Cyclone, autoHunt.castCyclone };
+            autoHunt.skillPriorities[2] = { HuntSkillType::Accuracy, autoHunt.useAccuracyIfCycloneActive };
+            autoHunt.skillPriorities[3] = { HuntSkillType::XpFly, autoHunt.castXpFly };
+            autoHunt.skillPriorities[4] = { HuntSkillType::Fly, autoHunt.castFly };
+            autoHunt.skillPriorities[5] = { HuntSkillType::Stigma, autoHunt.useStigma };
+        }
+        autoHunt.SyncSkillBoolsFromPriorities();
+    }
+    autoHunt.useScatterLogic = ReadInt(file, section, "useScatterLogic", 1) != 0;
+    autoHunt.pickupNearbyHpPotionWhenLow = ReadInt(file, section, "pickupNearbyHpPotionWhenLow", 0) != 0;
+    autoHunt.pickupNearbyManaPotionForStigma = ReadInt(file, section, "pickupNearbyManaPotionForStigma", 0) != 0;
+    autoHunt.prioritizeMobClumps = ReadInt(file, section, "prioritizeMobClumps", 1) != 0;
+    autoHunt.prioritizeScatterClumps = ReadInt(file, section, "prioritizeScatterClumps", 1) != 0;
+    autoHunt.mobSearchRange = ReadInt(file, section, "mobSearchRange", 0);
+    if (autoHunt.mobSearchRange < 0)
+        autoHunt.mobSearchRange = 0;
+    if (autoHunt.mobSearchRange > 18)
+        autoHunt.mobSearchRange = 18;
+    autoHunt.immediateReturnOnPriorityItems = ReadInt(file, section, "immediateReturnOnPriorityItems", 0) != 0;
+    autoHunt.storeTreasureBank = ReadInt(file, section, "storeTreasureBank", 1) != 0;
+    autoHunt.storeComposeBank = ReadInt(file, section, "storeComposeBank", 1) != 0;
+    autoHunt.autoDepositSilver = ReadInt(file, section, "autoDepositSilver", 0) != 0;
+    autoHunt.silverKeepAmount = ReadInt(file, section, "silverKeepAmount", 0);
+    if (autoHunt.silverKeepAmount < 0)
+        autoHunt.silverKeepAmount = 0;
+    autoHunt.packMeteorsIntoScrolls = ReadInt(file, section, "packMeteorsIntoScrolls", 0) != 0;
+    autoHunt.lootRefined = ReadInt(file, section, "lootRefined", 0) != 0;
+    autoHunt.lootUnique = ReadInt(file, section, "lootUnique", 0) != 0;
+    autoHunt.lootElite = ReadInt(file, section, "lootElite", 0) != 0;
+    autoHunt.lootSuper = ReadInt(file, section, "lootSuper", 0) != 0;
+    autoHunt.storeRefined = ReadInt(file, section, "storeRefined", 0) != 0;
+    autoHunt.storeUnique = ReadInt(file, section, "storeUnique", 0) != 0;
+    autoHunt.storeElite = ReadInt(file, section, "storeElite", 0) != 0;
+    autoHunt.storeSuper = ReadInt(file, section, "storeSuper", 0) != 0;
+    autoHunt.buyArrows = ReadInt(file, section, "buyArrows", 0) != 0;
+    autoHunt.arrowTypeId = (uint32_t)ReadInt(file, section, "arrowTypeId", 1050002);
+    autoHunt.arrowBuyCount = ReadInt(file, section, "arrowBuyCount", 3);
+    if (autoHunt.arrowBuyCount < 1)
+        autoHunt.arrowBuyCount = 1;
+    if (autoHunt.arrowBuyCount > 10)
+        autoHunt.arrowBuyCount = 10;
+    autoHunt.hpPotionPercent = ReadInt(file, section, "hpPotionPercent", 50);
+    autoHunt.manaPotionPercent = ReadInt(file, section, "manaPotionPercent", 35);
+    autoHunt.repairPercent = ReadInt(file, section, "repairPercent", 70);
+    autoHunt.bagStoreThreshold = ReadInt(file, section, "bagStoreThreshold", 36);
+    const int legacyClumpRadius = ReadInt(file, section, "aoeRadius", 8);
+    autoHunt.clumpRadius = ReadInt(file, section, "clumpRadius", legacyClumpRadius);
+    if (autoHunt.clumpRadius < 1)
+        autoHunt.clumpRadius = 1;
+    if (autoHunt.clumpRadius > 18)
+        autoHunt.clumpRadius = 18;
+    autoHunt.minimumMobClump = ReadInt(file, section, "minimumMobClump", 5);
+    autoHunt.minimumScatterHits = ReadInt(file, section, "minimumScatterHits", 3);
+    if (autoHunt.minimumScatterHits < 1)
+        autoHunt.minimumScatterHits = 1;
+    if (autoHunt.minimumScatterHits > 12)
+        autoHunt.minimumScatterHits = 12;
+    autoHunt.scatterRangeOverride = ReadInt(file, section, "scatterRangeOverride", 0);
+    if (autoHunt.scatterRangeOverride < 0)
+        autoHunt.scatterRangeOverride = 0;
+    if (autoHunt.scatterRangeOverride > 18)
+        autoHunt.scatterRangeOverride = 18;
+    autoHunt.actionRadius = ReadInt(file, section, "actionRadius", 6);
+    if (autoHunt.actionRadius < 1)
+        autoHunt.actionRadius = 1;
+    if (autoHunt.actionRadius > 18)
+        autoHunt.actionRadius = 18;
+    autoHunt.rangedAttackRange = ReadInt(file, section, "rangedAttackRange", 0);
+    if (autoHunt.rangedAttackRange < 0)
+        autoHunt.rangedAttackRange = 0;
+    if (autoHunt.rangedAttackRange > 18)
+        autoHunt.rangedAttackRange = 18;
+    autoHunt.archerSafetyDistance = ReadInt(file, section, "archerSafetyDistance", 0);
+    if (autoHunt.archerSafetyDistance < 0)
+        autoHunt.archerSafetyDistance = 0;
+    if (autoHunt.archerSafetyDistance > 18)
+        autoHunt.archerSafetyDistance = 18;
+    const int combatMode = ReadInt(file, section, "combatMode", autoHunt.archerMode ? 1 : 0);
+    autoHunt.combatMode = combatMode == static_cast<int>(AutoHuntCombatMode::Archer)
+        ? AutoHuntCombatMode::Archer
+        : AutoHuntCombatMode::Melee;
+    autoHunt.lootRange = ReadInt(file, section, "lootRange", 5);
+    if (autoHunt.lootRange < 0)
+        autoHunt.lootRange = 0;
+    if (autoHunt.lootRange > 18)
+        autoHunt.lootRange = 18;
+    autoHunt.movementIntervalMs = ReadInt(file, section, "movementIntervalMs", 900);
+    if (autoHunt.movementIntervalMs < 100)
+        autoHunt.movementIntervalMs = 100;
+    if (autoHunt.movementIntervalMs > 5000)
+        autoHunt.movementIntervalMs = 5000;
+    autoHunt.attackIntervalMs = ReadInt(file, section, "attackIntervalMs", autoHunt.attackIntervalMs);
+    if (autoHunt.attackIntervalMs < 25)
+        autoHunt.attackIntervalMs = 25;
+    if (autoHunt.attackIntervalMs > 5000)
+        autoHunt.attackIntervalMs = 5000;
+    autoHunt.cycloneAttackIntervalMs = ReadInt(file, section, "cycloneAttackIntervalMs", autoHunt.cycloneAttackIntervalMs);
+    if (autoHunt.cycloneAttackIntervalMs < 25)
+        autoHunt.cycloneAttackIntervalMs = 25;
+    if (autoHunt.cycloneAttackIntervalMs > 5000)
+        autoHunt.cycloneAttackIntervalMs = 5000;
+    autoHunt.targetSwitchAttackIntervalMs = ReadInt(file, section, "targetSwitchAttackIntervalMs", autoHunt.targetSwitchAttackIntervalMs);
+    if (autoHunt.targetSwitchAttackIntervalMs < 0)
+        autoHunt.targetSwitchAttackIntervalMs = 0;
+    if (autoHunt.targetSwitchAttackIntervalMs > 5000)
+        autoHunt.targetSwitchAttackIntervalMs = 5000;
+    autoHunt.itemActionIntervalMs = ReadInt(file, section, "itemActionIntervalMs", autoHunt.itemActionIntervalMs);
+    if (autoHunt.itemActionIntervalMs < 100)
+        autoHunt.itemActionIntervalMs = 100;
+    if (autoHunt.itemActionIntervalMs > 5000)
+        autoHunt.itemActionIntervalMs = 5000;
+    autoHunt.lootSpawnGraceMs = ReadInt(file, section, "lootSpawnGraceMs", autoHunt.lootSpawnGraceMs);
+    if (autoHunt.lootSpawnGraceMs < 0)
+        autoHunt.lootSpawnGraceMs = 0;
+    if (autoHunt.lootSpawnGraceMs > 5000)
+        autoHunt.lootSpawnGraceMs = 5000;
+    autoHunt.selfCastIntervalMs = ReadInt(file, section, "selfCastIntervalMs", autoHunt.selfCastIntervalMs);
+    if (autoHunt.selfCastIntervalMs < 100)
+        autoHunt.selfCastIntervalMs = 100;
+    if (autoHunt.selfCastIntervalMs > 5000)
+        autoHunt.selfCastIntervalMs = 5000;
+    autoHunt.npcActionIntervalMs = ReadInt(file, section, "npcActionIntervalMs", autoHunt.npcActionIntervalMs);
+    if (autoHunt.npcActionIntervalMs < 100)
+        autoHunt.npcActionIntervalMs = 100;
+    if (autoHunt.npcActionIntervalMs > 2000)
+        autoHunt.npcActionIntervalMs = 2000;
+    autoHunt.lootPickupIgnoreMs = ReadInt(file, section, "lootPickupIgnoreMs", autoHunt.lootPickupIgnoreMs);
+    if (autoHunt.lootPickupIgnoreMs < 0)
+        autoHunt.lootPickupIgnoreMs = 0;
+    if (autoHunt.lootPickupIgnoreMs > 300000)
+        autoHunt.lootPickupIgnoreMs = 300000;
+    autoHunt.reviveDelayMs = ReadInt(file, section, "reviveDelayMs", autoHunt.reviveDelayMs);
+    if (autoHunt.reviveDelayMs < 0)
+        autoHunt.reviveDelayMs = 0;
+    if (autoHunt.reviveDelayMs > 60000)
+        autoHunt.reviveDelayMs = 60000;
+    autoHunt.reviveRetryIntervalMs = ReadInt(file, section, "reviveRetryIntervalMs", autoHunt.reviveRetryIntervalMs);
+    if (autoHunt.reviveRetryIntervalMs < 100)
+        autoHunt.reviveRetryIntervalMs = 100;
+    if (autoHunt.reviveRetryIntervalMs > 10000)
+        autoHunt.reviveRetryIntervalMs = 10000;
+    autoHunt.minimumLootPlus = ReadInt(file, section, "minimumLootPlus", 0);
+    autoHunt.minimumStorePlus = ReadInt(file, section, "minimumStorePlus", autoHunt.minimumLootPlus);
+    autoHunt.zoneMapId = ReadInt(file, section, "zoneMapId", 0);
+    autoHunt.zoneMode = static_cast<AutoHuntZoneMode>(ReadInt(file, section, "zoneMode", 0));
+    autoHunt.zoneCenter.x = ReadInt(file, section, "zoneCenterX", 0);
+    autoHunt.zoneCenter.y = ReadInt(file, section, "zoneCenterY", 0);
+    autoHunt.zoneRadius = ReadInt(file, section, "zoneRadius", 12);
+    ReadString(file, section, "monsterNames", "", autoHunt.monsterNames, sizeof(autoHunt.monsterNames));
+    ReadString(file, section, "monsterIgnoreNames", "", autoHunt.monsterIgnoreNames, sizeof(autoHunt.monsterIgnoreNames));
+    ReadString(file, section, "monsterPreferNames", "", autoHunt.monsterPreferNames, sizeof(autoHunt.monsterPreferNames));
+    ReadString(file, section, "playerWhitelist", "", autoHunt.playerWhitelist, sizeof(autoHunt.playerWhitelist));
+    autoHunt.usePacketJump = ReadInt(file, section, "usePacketJump",
+        ReadInt(file, "Misc", "usePacketJump", 0)) != 0;
+    autoHunt.safetyEnabled = ReadInt(file, section, "safetyEnabled", 0) != 0;
+    autoHunt.safetyNotifyDiscord = ReadInt(file, section, "safetyNotifyDiscord", 0) != 0;
+    autoHunt.safetyPlayerRange = ReadInt(file, section, "safetyPlayerRange", 15);
+    autoHunt.safetyDetectionSec = ReadInt(file, section, "safetyDetectionSec", 30);
+    autoHunt.safetyRestSec = ReadInt(file, section, "safetyRestSec", 120);
+    char polygonBuf[2048] = {};
+    ReadString(file, section, "zonePolygon", "", polygonBuf, sizeof(polygonBuf));
+    ParsePositions(polygonBuf, autoHunt.zonePolygon);
+    char lootBuf[4096] = {};
+    ReadString(file, section, "lootItemIds", "", lootBuf, sizeof(lootBuf));
+    ParseU32List(lootBuf, autoHunt.lootItemIds);
+    char warehouseBuf[4096] = {};
+    ReadString(file, section, "warehouseItemIds", "__unset__", warehouseBuf, sizeof(warehouseBuf));
+    if (strcmp(warehouseBuf, "__unset__") != 0) {
+        ParseU32List(warehouseBuf, autoHunt.warehouseItemIds);
+    } else {
+        autoHunt.warehouseItemIds = autoHunt.lootItemIds;
+    }
+    char priorityReturnBuf[4096] = {};
+    ReadString(file, section, "priorityReturnItemIds", "", priorityReturnBuf, sizeof(priorityReturnBuf));
+    ParseU32List(priorityReturnBuf, autoHunt.priorityReturnItemIds);
 }
 
 static void SaveMiningSection(const char* file, const char* section)
@@ -587,6 +1028,7 @@ static std::string SaveCharacterConfigForKey(const std::string& characterKey)
     const std::string path = GetConfigPathForKey(characterKey);
     const char* file = path.c_str();
     SaveSharedSections(file);
+    SaveAutoHuntSection(file, "AutoHunt");
     SaveMiningSection(file, "Mining");
     SaveMuleSection(file, "Mule");
     SaveFollowSection(file, "Follow");
@@ -600,6 +1042,7 @@ static std::string LoadCharacterConfigForKey(const std::string& characterKey)
     const std::string path = ResolveLoadConfigPath(characterKey);
     const char* file = path.c_str();
     LoadSharedSections(file);
+    LoadAutoHuntSection(file, "AutoHunt");
     LoadMiningSection(file, "Mining");
     LoadMuleSection(file, "Mule");
     LoadFollowSection(file, "Follow");

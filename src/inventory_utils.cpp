@@ -3,6 +3,7 @@
 #include "CItem.h"
 #include "CGameMap.h"
 #include "itemtype.h"
+#include "hunt_settings.h"
 #include <algorithm>
 
 // ── Item-ID list helpers ──────────────────────────────────────────────
@@ -80,6 +81,17 @@ bool IsConsumablePotionType(const ItemTypeInfo& info, bool manaPotion)
     return manaPotion ? info.mana > 0 : info.life > 0;
 }
 
+bool IsSelectedLootQuality(const AutoHuntSettings& settings, int quality)
+{
+    switch (quality) {
+        case ItemQuality::REFINED: return settings.lootRefined;
+        case ItemQuality::UNIQUE:  return settings.lootUnique;
+        case ItemQuality::ELITE:   return settings.lootElite;
+        case ItemQuality::SUPER:   return settings.lootSuper;
+        default:                   return false;
+    }
+}
+
 bool IsEquipmentQualitySort(int itemSort)
 {
     switch (itemSort) {
@@ -108,3 +120,21 @@ bool IsGemTypeId(uint32_t typeId)
     return typeId >= 700001 && typeId < 701000 && (typeId % 10) >= 1 && (typeId % 10) <= 3;
 }
 
+bool MatchesSelectedLootQuality(const AutoHuntSettings& settings, const CMapItem& item)
+{
+    const uint32_t typeId = item.m_idType;
+    const int suffix = typeId % 10;
+    const int itemSort = GetItemSort(typeId);
+    if (IsEquipmentQualitySort(itemSort))
+        return IsSelectedLootQuality(settings, suffix);
+
+    if (IsGemTypeId(typeId)) {
+        switch (suffix) {
+            case 2: return settings.lootRefined;
+            case 3: return settings.lootSuper;
+            default: return false;
+        }
+    }
+
+    return false;
+}

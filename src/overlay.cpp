@@ -11,6 +11,10 @@
 #include "itemtype.h"
 #include "CEntitySet.h"
 #include "CEntityInfo.h"
+#include "plugins/base_hunt_plugin.h"
+#include "plugins/melee_hunt_plugin.h"
+#include "plugins/archer_hunt_plugin.h"
+#include "hunt_settings.h"
 #include "plugins/travel_plugin.h"
 #include "log.h"
 
@@ -770,6 +774,244 @@ static HRESULT STDMETHODCALLTYPE HkPresent(IDXGISwapChain* pSwapChain, UINT sync
                                 IM_COL32(255, 255, 255, 255));
                         }
 
+                        // ── Auto Hunt debug range circles ──
+                        {
+                            const AutoHuntSettings& ah = GetAutoHuntSettings();
+                            auto DrawDebugCircle = [&](int radius, ImU32 col) {
+                                if (radius <= 0) return;
+                                constexpr int kSeg = 48;
+                                for (int i = 0; i <= kSeg; ++i) {
+                                    float angle = (float)i / (float)kSeg * 6.2831853f;
+                                    float tx = (float)heroX + cosf(angle) * (float)radius;
+                                    float ty = (float)heroY + sinf(angle) * (float)radius;
+                                    float ddx = tx - camTileX;
+                                    float ddy = ty - camTileY;
+                                    dl->PathLineTo(ImVec2(centerX + (ddx - ddy) * fs,
+                                                          centerY + (ddx + ddy) * fs));
+                                }
+                                dl->PathStroke(col, ImDrawFlags_Closed, 1.5f);
+                            };
+                            if (ah.debugShowActionRadius)
+                                DrawDebugCircle(ah.actionRadius, IM_COL32(0, 220, 0, 180));
+                            if (ah.debugShowClumpRadius)
+                                DrawDebugCircle(ah.clumpRadius, IM_COL32(255, 165, 0, 180));
+                            if (ah.debugShowMobSearchRange && ah.mobSearchRange > 0)
+                                DrawDebugCircle(ah.mobSearchRange, IM_COL32(100, 160, 255, 180));
+                            if (ah.debugShowLootRange)
+                                DrawDebugCircle(ah.lootRange, IM_COL32(220, 160, 255, 180));
+                            if (ah.debugShowSafetyRange && ah.safetyEnabled)
+                                DrawDebugCircle(ah.safetyPlayerRange, IM_COL32(255, 60, 60, 180));
+                            if (ah.debugShowAttackRange)
+                                DrawDebugCircle(ah.rangedAttackRange, IM_COL32(0, 220, 0, 200));
+                            if (ah.debugShowArcherSafety)
+                                DrawDebugCircle(ah.archerSafetyDistance, IM_COL32(255, 60, 60, 200));
+                            if (ah.debugShowScatterRange && ah.useScatterLogic) {
+                                if (auto* hunt = PluginManager::Get().GetPlugin<ArcherHuntPlugin>()) {
+                                    int scatterR = hunt->GetLastScatterRange();
+                                    DrawDebugCircle(scatterR, IM_COL32(100, 160, 255, 160));
+                                    if (scatterR > 0) {
+                                        Position targetPos = hunt->GetLastTargetPos();
+                                        float facingAngle = 0.0f;
+                                        if (targetPos.x != heroX || targetPos.y != heroY) {
+                                            facingAngle = atan2f(
+                                                (float)(targetPos.y - heroY),
+                                                (float)(targetPos.x - heroX));
+                                        }
+                                        constexpr int kArcSeg = 32;
+                                        const float halfArc = 3.14159265f;
+                                        const float startAngle = facingAngle - halfArc * 0.5f;
+                                        auto TileToMinimap = [&](float ttx, float tty) {
+                                            float ddx = ttx - camTileX;
+                                            float ddy = tty - camTileY;
+                                            return ImVec2(centerX + (ddx - ddy) * fs,
+                                                          centerY + (ddx + ddy) * fs);
+                                        };
+                                        dl->PathLineTo(TileToMinimap((float)heroX, (float)heroY));
+                                        for (int i = 0; i <= kArcSeg; ++i) {
+                                            float a = startAngle + halfArc * (float)i / (float)kArcSeg;
+                                            float atx = (float)heroX + cosf(a) * (float)scatterR;
+                                            float aty = (float)heroY + sinf(a) * (float)scatterR;
+                                            dl->PathLineTo(TileToMinimap(atx, aty));
+                                        }
+                                        dl->PathLineTo(TileToMinimap((float)heroX, (float)heroY));
+                                        dl->PathStroke(IM_COL32(100, 160, 255, 200), ImDrawFlags_None, 1.5f);
+                                    }
+                                }
+                            }
+                            if (ah.debugShowBestClump) {
+                                // Find the active (enabled) hunt plugin — either melee or archer
+                                BaseHuntPlugin* hunt = nullptr;
+                                if (auto* m = PluginManager::Get().GetPlugin<MeleeHuntPlugin>(); m && m->m_enabled)
+                                    hunt = m;
+                                else if (auto* a = PluginManager::Get().GetPlugin<ArcherHuntPlugin>(); a && a->m_enabled)
+                                    hunt = a;
+                                if (hunt) {
+                                    Position clumpCenter = hunt->GetDebugBestClumpCenter();
+                                    int clumpSize = hunt->GetDebugBestClumpSize();
+                                    if (clumpSize >= 2 && (clumpCenter.x != 0 || clumpCenter.y != 0)) {
+                                        // Draw clump radius circle at best clump center
+                                        int clumpR = (std::max)(1, ah.clumpRadius);
+                                        constexpr int kClumpSeg = 48;
+                                        for (int i = 0; i <= kClumpSeg; ++i) {
+                                            float angle = (float)i / (float)kClumpSeg * 6.2831853f;
+                                            float tx = (float)clumpCenter.x + cosf(angle) * (float)clumpR;
+                                            float ty = (float)clumpCenter.y + sinf(angle) * (float)clumpR;
+                                            float ddx = tx - camTileX;
+                                            float ddy = ty - camTileY;
+                                            dl->PathLineTo(ImVec2(centerX + (ddx - ddy) * fs,
+                                                                  centerY + (ddx + ddy) * fs));
+                                        }
+                                        dl->PathStroke(IM_COL32(255, 220, 50, 200), ImDrawFlags_Closed, 2.0f);
+                                        // Center dot
+                                        float cdx = (float)clumpCenter.x - camTileX;
+                                        float cdy = (float)clumpCenter.y - camTileY;
+                                        dl->AddCircleFilled(
+                                            ImVec2(centerX + (cdx - cdy) * fs, centerY + (cdx + cdy) * fs),
+                                            fs * 0.5f, IM_COL32(255, 220, 50, 220));
+                                    }
+                                }
+                            }
+                        }
+
+                        {
+                            AutoHuntSettings& autoHunt = GetAutoHuntSettings();
+                            if (autoHunt.zoneMapId == map->GetId()) {
+                                auto TileToMiniMap = [&](const Position& tile) {
+                                    float dx = (float)tile.x - camTileX;
+                                    float dy = (float)tile.y - camTileY;
+                                    return ImVec2(
+                                        centerX + (dx - dy) * fs,
+                                        centerY + (dx + dy) * fs);
+                                };
+
+                                const ImU32 zoneCol = IM_COL32(255, 215, 0, 220);
+                                if (autoHunt.zoneMode == AutoHuntZoneMode::Circle
+                                    && autoHunt.zoneCenter.x != 0
+                                    && autoHunt.zoneCenter.y != 0
+                                    && autoHunt.zoneRadius > 0) {
+                                    for (int i = 0; i <= 32; ++i) {
+                                        const float t = (float)i / 32.0f;
+                                        const float angle = t * 6.2831853f;
+                                        Position edge = {
+                                            autoHunt.zoneCenter.x + (int)roundf(cosf(angle) * autoHunt.zoneRadius),
+                                            autoHunt.zoneCenter.y + (int)roundf(sinf(angle) * autoHunt.zoneRadius)
+                                        };
+                                        dl->PathLineTo(TileToMiniMap(edge));
+                                    }
+                                    dl->PathStroke(zoneCol, ImDrawFlags_Closed, 2.0f);
+                                    dl->AddCircleFilled(TileToMiniMap(autoHunt.zoneCenter), fs * 0.45f, zoneCol);
+                                } else if (autoHunt.zoneMode == AutoHuntZoneMode::Polygon
+                                           && autoHunt.zonePolygon.size() >= 2) {
+                                    for (const Position& vertex : autoHunt.zonePolygon)
+                                        dl->PathLineTo(TileToMiniMap(vertex));
+                                    if (autoHunt.zonePolygon.size() >= 3)
+                                        dl->PathStroke(zoneCol, ImDrawFlags_Closed, 2.0f);
+                                    else
+                                        dl->PathStroke(zoneCol, ImDrawFlags_None, 2.0f);
+
+                                    // Draw interactive vertex handles
+                                    bool huntActive = PluginManager::Get().GetPlugin<MeleeHuntPlugin>() != nullptr
+                                                   || PluginManager::Get().GetPlugin<ArcherHuntPlugin>() != nullptr;
+                                    int dragIdx = GetAutoHuntSettings().editDragVertex;
+
+                                    for (size_t vi = 0; vi < autoHunt.zonePolygon.size(); vi++) {
+                                        ImVec2 vScr = TileToMiniMap(autoHunt.zonePolygon[vi]);
+                                        bool isHot = false;
+                                        if ((int)vi == dragIdx) {
+                                            isHot = true;
+                                        } else if (canvasHovered && dragIdx < 0) {
+                                            float vdx = mousePos.x - vScr.x;
+                                            float vdy = mousePos.y - vScr.y;
+                                            if (vdx * vdx + vdy * vdy < 8.0f * 8.0f)
+                                                isHot = true;
+                                        }
+                                        float r = isHot ? fs * 0.9f : fs * 0.6f;
+                                        dl->AddCircleFilled(vScr, r,
+                                            isHot ? IM_COL32(255, 255, 255, 255) : zoneCol);
+                                        dl->AddCircle(vScr, r, IM_COL32(0, 0, 0, 180), 0, 1.5f);
+                                    }
+
+                                    // ── Polygon edit interactions (always active) ──
+                                    if (huntActive && canvasHovered) {
+                                        auto& poly = autoHunt.zonePolygon;
+
+                                        // Hit-test vertices
+                                        int hoveredVtx = -1;
+                                        float bestVtxDist2 = 8.0f * 8.0f;
+                                        for (size_t vi = 0; vi < poly.size(); vi++) {
+                                            ImVec2 vs = TileToMiniMap(poly[vi]);
+                                            float vdx = mousePos.x - vs.x;
+                                            float vdy = mousePos.y - vs.y;
+                                            float d2 = vdx * vdx + vdy * vdy;
+                                            if (d2 < bestVtxDist2) {
+                                                bestVtxDist2 = d2;
+                                                hoveredVtx = (int)vi;
+                                            }
+                                        }
+
+                                        // Mouse-to-tile helper
+                                        auto MouseToTile = [&]() -> Position {
+                                            float mdx = (mousePos.x - centerX) / fs;
+                                            float mdy = (mousePos.y - centerY) / fs;
+                                            return {
+                                                (int)roundf(camTileX + (mdx + mdy) * 0.5f),
+                                                (int)roundf(camTileY + (mdy - mdx) * 0.5f)
+                                            };
+                                        };
+
+                                        // Start drag or insert vertex on edge
+                                        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+                                            if (hoveredVtx >= 0) {
+                                                GetAutoHuntSettings().editDragVertex = hoveredVtx;
+                                                dragIdx = hoveredVtx;
+                                                canvasClicked = false;
+                                            } else if (poly.size() >= 2) {
+                                                // Find closest edge for insertion
+                                                float bestEdgeDist2 = 12.0f * 12.0f;
+                                                int insertAfter = -1;
+                                                for (size_t ei = 0; ei < poly.size(); ei++) {
+                                                    size_t ej = (ei + 1) % poly.size();
+                                                    ImVec2 a = TileToMiniMap(poly[ei]);
+                                                    ImVec2 b = TileToMiniMap(poly[ej]);
+                                                    float abx = b.x - a.x, aby = b.y - a.y;
+                                                    float abLen2 = abx * abx + aby * aby;
+                                                    if (abLen2 < 1.0f) continue;
+                                                    float t = ((mousePos.x - a.x) * abx +
+                                                               (mousePos.y - a.y) * aby) / abLen2;
+                                                    if (t < 0.05f || t > 0.95f) continue;
+                                                    float px = a.x + t * abx - mousePos.x;
+                                                    float py = a.y + t * aby - mousePos.y;
+                                                    float d2 = px * px + py * py;
+                                                    if (d2 < bestEdgeDist2) {
+                                                        bestEdgeDist2 = d2;
+                                                        insertAfter = (int)ei;
+                                                    }
+                                                }
+                                                if (insertAfter >= 0) {
+                                                    Position newVtx = MouseToTile();
+                                                    poly.insert(poly.begin() + insertAfter + 1, newVtx);
+                                                    GetAutoHuntSettings().editDragVertex = insertAfter + 1;
+                                                    dragIdx = insertAfter + 1;
+                                                    canvasClicked = false;
+                                                }
+                                            }
+                                        }
+
+                                        // Continue drag
+                                        if (dragIdx >= 0 && dragIdx < (int)poly.size()
+                                            && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+                                            poly[dragIdx] = MouseToTile();
+                                            canvasClicked = false;
+                                        }
+
+                                        // End drag
+                                        if (ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+                                            GetAutoHuntSettings().editDragVertex = -1;
+                                    }
+                                }
+                            }
+                        }
+
                         // ── Draw path waypoints on minimap ──
                         {
                             auto& pf = Pathfinder::Get();
@@ -820,7 +1062,7 @@ static HRESULT STDMETHODCALLTYPE HkPresent(IDXGISwapChain* pSwapChain, UINT sync
                                         if (!waypoints.empty()) {
                                             Pathfinder::Get().StartPath(
                                                 waypoints,
-                                                900);
+                                                static_cast<DWORD>(GetAutoHuntSettings().movementIntervalMs));
                                         }
                                     }
                                 }

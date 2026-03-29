@@ -42,6 +42,11 @@ add_library(coclassic SHARED
     src/CEntitySet.cpp
     src/CGameMap.cpp
     src/config.cpp
+    src/hunt_settings.cpp
+    src/hunt_targeting.cpp
+    src/hunt_town.cpp
+    src/hunt_buffs.cpp
+    src/hunt_loot.cpp
     src/inventory_utils.cpp
     src/npc_utils.cpp
     src/revive_utils.cpp
@@ -53,6 +58,9 @@ add_library(coclassic SHARED
     src/packets.cpp
     src/pathfinder.cpp
     src/plugins/plugin_mgr.cpp
+    src/plugins/base_hunt_plugin.cpp
+    src/plugins/melee_hunt_plugin.cpp
+    src/plugins/archer_hunt_plugin.cpp
 
     src/plugins/mining_plugin.cpp
     src/plugins/mule_plugin.cpp

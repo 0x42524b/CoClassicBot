@@ -4,6 +4,7 @@
 #include "game.h"
 #include "gateway.h"
 #include "packets.h"
+#include "hunt_settings.h"
 #include "plugins/plugin_mgr.h"
 #include "plugins/travel_plugin.h"
 #include "log.h"
@@ -126,15 +127,16 @@ static int WriteVarint(uint8_t* buf, uint32_t value);
 
 void CHero::Jump(int nX, int nY)
 {
+    const AutoHuntSettings& ah = GetAutoHuntSettings();
     const TravelSettings& ts = GetTravelSettings();
 
-    // Check if travel wants packet jump
+    // Check if either hunt or travel wants packet jump
     const bool travelActive = [&]() {
         if (auto* tp = PluginManager::Get().GetPlugin<TravelPlugin>())
             return tp->IsTraveling();
         return false;
     }();
-    const bool wantPacketJump = travelActive && ts.usePacketJump;
+    const bool wantPacketJump = ah.usePacketJump || (travelActive && ts.usePacketJump);
 
     if (!wantPacketJump) {
         GameCall::CHero_Jump()(this, nX, nY);
@@ -143,7 +145,7 @@ void CHero::Jump(int nX, int nY)
 
     // Suppress packet jump when other players are nearby — fall back to
     // the native jump so the game plays a normal animation.
-    if (AreOtherPlayersNearby(GetID())) {
+    if (AreOtherPlayersNearby(GetID(), ah.playerWhitelist)) {
         GameCall::CHero_Jump()(this, nX, nY);
     } else {
         // SetCommand tells the game a jump is happening so it doesn't
